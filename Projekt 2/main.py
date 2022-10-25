@@ -5,7 +5,17 @@ import matplotlib.pyplot as plt
 
 data = pd.read_csv (r'/Users/frederikravnborg/Library/CloudStorage/OneDrive-DanmarksTekniskeUniversitet/DTU-Frederik’s MacBook Pro/ML/Project 1/penguins.csv')
 
-print(data)
+cullen = data["culmen_length_mm"]
+culdep = data["culmen_depth_mm"]
+flilen = data["flipper_length_mm"]
+bodmas = data["body_mass_g"]
+
+# Standardize
+cullens = (cullen-np.mean(cullen))/np.std(cullen)
+culdeps = (culdep-np.mean(culdep))/np.std(culdep)
+flilens = (flilen-np.mean(flilen))/np.std(flilen)
+bodmass = (bodmas-np.mean(bodmas))/np.std(bodmas)
+
 
 
 #%%
