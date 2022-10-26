@@ -12,8 +12,8 @@ from sklearn.metrics import mean_squared_error
 
 
 # Load Penguin data
-#data = pd.read_csv (r'/Users/frederikravnborg/Library/CloudStorage/OneDrive-DanmarksTekniskeUniversitet/DTU-Frederik’s MacBook Pro/ML/Project 1/penguins.csv')
-data = pd.read_csv (r'C:/Users/Lachl/OneDrive/Documents/Intro ML/Projekt-2-Intro-ML/Projekt 2/penguins_size.csv')
+data = pd.read_csv (r'/Users/frederikravnborg/Library/CloudStorage/OneDrive-DanmarksTekniskeUniversitet/DTU-Frederik’s MacBook Pro/ML/Project 1/penguins.csv')
+# data = pd.read_csv (r'C:/Users/Lachl/OneDrive/Documents/Intro ML/Projekt-2-Intro-ML/Projekt 2/penguins_size.csv')
 
 # Seperate data
 cullen = data["culmen_length_mm"]
@@ -46,7 +46,7 @@ baseline = np.mean(y_train)
 
 # Compute Mean Squared Error
 baseerror =1/ntest * np.sum(y_test-baseline)**2
-print("baseline mean squared error: ", baseerror)
+print("Baseline mean squared error: ", baseerror)
 
 #%%
 # Define the LinearRegression model
@@ -66,4 +66,4 @@ predictions = LRmodel.predict(X_test)
 
 #%%
 # Find overall error by finding mean squared error between the predictions and the true labels
-print("mean squared error: ", mean_squared_error(y_test, predictions))
+print("Linear Regression mean squared error: ", mean_squared_error(y_test, predictions))
