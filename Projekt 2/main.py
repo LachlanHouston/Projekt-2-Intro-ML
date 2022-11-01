@@ -12,8 +12,8 @@ from sklearn.metrics import mean_squared_error
 
 
 # Load Penguin data
-#data = pd.read_csv (r'/Users/frederikravnborg/Library/CloudStorage/OneDrive-DanmarksTekniskeUniversitet/DTU-Frederik’s MacBook Pro/ML/Project 1/penguins.csv')
-data = pd.read_csv (r'C:/Users/Lachl/OneDrive/Documents/Intro ML/Projekt-2-Intro-ML/Projekt 2/penguins_size.csv')
+data = pd.read_csv (r'/Users/frederikravnborg/Library/CloudStorage/OneDrive-DanmarksTekniskeUniversitet/DTU-Frederik’s MacBook Pro/ML/Project 1/penguins.csv')
+# data = pd.read_csv (r'C:/Users/Lachl/OneDrive/Documents/Intro ML/Projekt-2-Intro-ML/Projekt 2/penguins_size.csv')
 
 # Seperate data
 cullen = data["culmen_length_mm"]
@@ -186,5 +186,13 @@ for train_index, test_index in CV.split(X,y):
     #m = lm.LinearRegression().fit(X_train, y_train)
     #Error_train[k] = np.square(y_train-m.predict(X_train)).sum()/y_train.shape[0]
     #Error_test[k] = np.square(y_test-m.predict(X_test)).sum()/y_test.shape[0]
-
+    
     k += 1
+
+print(lambdaI)
+
+
+
+
+
+
