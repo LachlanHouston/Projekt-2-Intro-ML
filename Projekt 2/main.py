@@ -78,11 +78,18 @@ def rlr_validate(X,y,lambdas,cvf=10):
     test_error = np.empty((cvf,len(lambdas)))
     f = 0
     y = y.squeeze()
+    baseerror = []
     for train_index, test_index in CV.split(X,y):
         X_train = X[train_index]
         y_train = y[train_index]
         X_test = X[test_index]
         y_test = y[test_index]
+        ntest = len(y_test)
+        
+        baseline = np.mean(y_train)
+
+        # Compute Mean Squared Error
+        baseerror.append( 1/ntest * np.sum(y_test-baseline)**2 )
         
         # Standardize the training and set set based on training set moments
         mu = np.mean(X_train[:, 1:], 0)
@@ -112,7 +119,7 @@ def rlr_validate(X,y,lambdas,cvf=10):
     test_err_vs_lambda = np.mean(test_error,axis=0)
     mean_w_vs_lambda = np.squeeze(np.mean(w,axis=1))
     
-    return opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda
+    return opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda, baseerror
 #%%
 N, M = X.shape
 
@@ -151,7 +158,7 @@ for train_index, test_index in CV.split(X,y):
     y_test = y[test_index]
     internal_cross_validation = 10    
     
-    opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X_train, y_train, lambdas, internal_cross_validation)
+    opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda, baseerror = rlr_validate(X_train, y_train, lambdas, internal_cross_validation)
 
     # Standardize outer fold based on training set, and save the mean and standard
     # deviations since they're part of the model (they would be needed for
@@ -190,7 +197,7 @@ for train_index, test_index in CV.split(X,y):
     k += 1
 
 print(lambdaI)
-
+print(baseerror)
 
 
 
