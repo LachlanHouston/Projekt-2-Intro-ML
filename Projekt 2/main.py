@@ -208,16 +208,8 @@ print(baseerror)
 
 
 
-#%%
+#%% KNN Classification, Virker
 
-
-
-
-
-
-
-
-# exercise 6.3.1
 
 from matplotlib.pyplot import (figure, plot, title, xlabel, ylabel, 
                                colorbar, imshow, xticks, yticks, show)
@@ -226,6 +218,10 @@ from sklearn.neighbors import KNeighborsClassifier, DistanceMetric
 from sklearn.metrics import confusion_matrix
 from numpy import cov
 import random
+from sklearn import metrics
+from sklearn.model_selection import KFold
+from scipy import stats
+
 
 # Seperate data
 cullen = data["culmen_length_mm"]
@@ -243,6 +239,53 @@ bodmas = (bodmas-np.mean(bodmas))/np.std(bodmas)
 # Create X and y, X needs to be reshaped to be used later
 X = np.array([(flilen, culdep, cullen,bodmas)]).reshape(-1,4)
 y = np.array(spec)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=4, test_size=0.1)
+
+
+cv_outer = KFold(n_splits=10, shuffle=True, random_state=42)
+# enumerate splits
+KNN_errors = []
+KNNoptK = []
+baseline_errors = []
+
+for train_ix, test_ix in cv_outer.split(X):
+	# split data
+    X_train, X_test = X[train_ix, :], X[test_ix, :]
+    y_train, y_test = y[train_ix], y[test_ix]
+    error_rate = []
+    
+    for i in range(1,40):
+        knn = KNeighborsClassifier(n_neighbors=i)
+        knn.fit(X_train,y_train)
+        pred_i = knn.predict(X_test)
+        error_rate.append(np.mean(pred_i != y_test))
+    
+    plt.figure(figsize=(10,6))
+    plt.plot(range(1,40),error_rate,color='blue', linestyle='dashed', 
+             marker='o',markerfacecolor='red', markersize=10)
+    plt.title('Error Rate vs. K Value')
+    plt.xlabel('K')
+    plt.ylabel('Error Rate')
+    
+    KNNoptK.append(error_rate.index(min(error_rate)))
+    KNN_errors.append(np.mean(error_rate))
+    
+    baseline_pred = stats.mode(y_train)
+    baseline_error = np.mean(baseline_pred != y_test)
+    baseline_errors.append(baseline_error)
+    
+    
+    
+
+print("Errors: ", KNN_errors)
+print("Optimal K: ", KNNoptK)
+print("Baseline errors: ", baseline_errors)
+    
+
+
+#%%
+
 
 n = len(y)
 
