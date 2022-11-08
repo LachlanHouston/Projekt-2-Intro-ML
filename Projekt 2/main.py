@@ -49,6 +49,10 @@ baseline = np.mean(y_train)
 baseerror =1/ntest * np.sum(y_test-baseline)**2
 print("baseline mean squared error: ", baseerror)
 #%%
+
+# Classification (a.2)
+###############################################################################
+
 def rlr_validate(X,y,lambdas,cvf=10):
     ''' Validate regularized linear regression model using 'cvf'-fold cross validation.
         Find the optimal lambda (minimizing validation error) from 'lambdas' list.
@@ -71,6 +75,8 @@ def rlr_validate(X,y,lambdas,cvf=10):
         train_err_vs_lambda train error as function of lambda (vector)
         test_err_vs_lambda  test error as function of lambda (vector)
     '''
+    
+    
     CV = model_selection.KFold(cvf, shuffle=True)
     M = X.shape[1]
     w = np.empty((M,cvf,len(lambdas)))
@@ -198,6 +204,122 @@ for train_index, test_index in CV.split(X,y):
 
 print(lambdaI)
 print(baseerror)
+
+
+
+
+#%%
+
+
+
+
+
+
+
+
+# exercise 6.3.1
+
+from matplotlib.pyplot import (figure, plot, title, xlabel, ylabel, 
+                               colorbar, imshow, xticks, yticks, show)
+from scipy.io import loadmat
+from sklearn.neighbors import KNeighborsClassifier, DistanceMetric
+from sklearn.metrics import confusion_matrix
+from numpy import cov
+import random
+
+# Seperate data
+cullen = data["culmen_length_mm"]
+culdep = data["culmen_depth_mm"]
+flilen = data["flipper_length_mm"]
+bodmas = data["body_mass_g"]
+spec   = data["species"]
+
+# Standardize
+cullen = (cullen-np.mean(cullen))/np.std(cullen)
+culdep = (culdep-np.mean(culdep))/np.std(culdep)
+flilen = (flilen-np.mean(flilen))/np.std(flilen)
+bodmas = (bodmas-np.mean(bodmas))/np.std(bodmas)
+
+# Create X and y, X needs to be reshaped to be used later
+X = np.array([(flilen, culdep, cullen,bodmas)]).reshape(-1,4)
+y = np.array(spec)
+
+n = len(y)
+
+K=10
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, test_size=0.1)
+CV = model_selection.KFold(n_splits=K,shuffle=True)
+
+for train_index, test_index in CV.split(X):
+    print('Computing CV fold: {0}/{1}..'.format(k+1,K))
+
+    # extract training and test set for current CV fold
+    X_train, y_train = X[train_index,:], y[train_index]
+    X_test, y_test = X[test_index,:], y[test_index]
+
+npdata = data.to_numpy()
+
+attributeNames = np.asarray(data.columns[range(2,6)])
+classNames = np.unique(npdata[:,0])
+N, M = X.shape
+C = len(classNames)
+
+
+# Plot the training data points (color-coded) and test data points.
+figure(1)
+styles = ['.b', '.r', '.g']
+for c in range(C):
+    class_mask = (y_train==c)
+    plot(X_train[class_mask,0], X_train[class_mask,1], styles[c])
+
+
+# K-nearest neighbors
+K=5
+
+# Distance metric (corresponds to 2nd norm, euclidean distance).
+# You can set dist=1 to obtain manhattan distance (cityblock distance).
+dist=2
+metric = 'minkowski'
+metric_params = {} # no parameters needed for minkowski
+
+# You can set the metric argument to 'cosine' to determine the cosine distance
+#metric = 'cosine' 
+#metric_params = {} # no parameters needed for cosine
+
+# To use a mahalonobis distance, we need to input the covariance matrix, too:
+#metric='mahalanobis'
+#metric_params={'V': cov(X_train, rowvar=False)}
+
+# Fit classifier and classify the test points
+knclassifier = KNeighborsClassifier(n_neighbors=K, p=dist, 
+                                    metric=metric,
+                                    metric_params=metric_params)
+knclassifier.fit(X_train, y_train)
+y_est = knclassifier.predict(X_test)
+
+
+# Plot the classfication results
+styles = ['ob', 'or', 'og', 'oy']
+for c in range(C):
+    class_mask = (y_est==c)
+    plot(X_test[class_mask,0], X_test[class_mask,1], styles[c], markersize=10)
+    plot(X_test[class_mask,0], X_test[class_mask,1], 'kx', markersize=8)
+title('Synthetic data classification - KNN');
+
+# Compute and plot confusion matrix
+cm = confusion_matrix(y_test, y_est);
+accuracy = 100*cm.diagonal().sum()/cm.sum()
+error_rate = 100-accuracy;
+print("Accuracy", accuracy)
+figure(2);
+imshow(cm, cmap='binary', interpolation='None');
+colorbar()
+xticks(range(C)); yticks(range(C));
+xlabel('Predicted class'); ylabel('Actual class');
+title('Confusion matrix (Accuracy: {0}%, Error Rate: {1}%)'.format(accuracy, error_rate));
+
+show()
+
 
 
 
