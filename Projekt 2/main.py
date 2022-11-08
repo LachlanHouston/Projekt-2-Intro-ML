@@ -221,6 +221,8 @@ import random
 from sklearn import metrics
 from sklearn.model_selection import KFold
 from scipy import stats
+from sklearn.linear_model import LogisticRegression
+
 
 
 # Seperate data
@@ -248,6 +250,8 @@ cv_outer = KFold(n_splits=10, shuffle=True, random_state=42)
 KNN_errors = []
 KNNoptK = []
 baseline_errors = []
+logistic_errors = []
+logistic_optLambda = []
 
 for train_ix, test_ix in cv_outer.split(X):
 	# split data
@@ -277,11 +281,42 @@ for train_ix, test_ix in cv_outer.split(X):
     
     
     
+    # Fit regularized logistic regression model to training data to predict 
+    # the type of wine
+    lambda_interval = np.logspace(-8, 2, 50)
+    train_error_rate = np.zeros(len(lambda_interval))
+    test_error_rate = np.zeros(len(lambda_interval))
+    coefficient_norm = np.zeros(len(lambda_interval))
+    for k in range(0, len(lambda_interval)):
+        mdl = LogisticRegression(penalty='l2', C=1/lambda_interval[k] )
+        
+        mdl.fit(X_train, y_train)
 
-print("Errors: ", KNN_errors)
-print("Optimal K: ", KNNoptK)
-print("Baseline errors: ", baseline_errors)
+        y_train_est = mdl.predict(X_train).T
+        y_test_est = mdl.predict(X_test).T
+        
+        train_error_rate[k] = np.sum(y_train_est != y_train) / len(y_train)
+        test_error_rate[k] = np.sum(y_test_est != y_test) / len(y_test)
+
+        w_est = mdl.coef_[0] 
+        coefficient_norm[k] = np.sqrt(np.sum(w_est**2))
+
+    min_error = np.min(test_error_rate)
+    opt_lambda_idx = np.argmin(test_error_rate)
+    opt_lambda = lambda_interval[opt_lambda_idx]  
     
+    logistic_optLambda.append(opt_lambda)
+    logistic_errors.append(min_error)
+    
+
+print("KNN errors: ", KNN_errors)
+print("Optimal K: ", KNNoptK)
+print("\nBaseline errors: ", baseline_errors)
+print("\nLogistic errors: ", logistic_errors)
+print("Logistic lambda: ", logistic_optLambda)
+
+
+  
 
 
 #%%
