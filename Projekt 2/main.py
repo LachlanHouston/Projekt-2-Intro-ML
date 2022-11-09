@@ -345,12 +345,14 @@ print("Logistic lambda: ", logistic_optLambda)
 true_labels = np.array(true_labels)
 base_preds = np.array(base_preds)
 print(true_labels == base_preds)
-n00 = sum((KNN_preds != true_labels) and (base_preds != true_labels))
-n01 = sum((KNN_preds != true_labels) and (base_preds == true_labels))
-n10 = sum((KNN_preds == true_labels) and (base_preds != true_labels))
-n11 = sum((KNN_preds == true_labels) and (base_preds == true_labels))
-Contingency_KNN_base = [[n00, n01], [n10, n11]]
-print(Contingency_KNN_base)
+
+
+# n00 = sum((KNN_preds != true_labels) and (base_preds != true_labels))
+# n01 = sum((KNN_preds != true_labels) and (base_preds == true_labels))
+# n10 = sum((KNN_preds == true_labels) and (base_preds != true_labels))
+# n11 = sum((KNN_preds == true_labels) and (base_preds == true_labels))
+# Contingency_KNN_base = [[n00, n01], [n10, n11]]
+# print(Contingency_KNN_base)
 
 
 #%%
