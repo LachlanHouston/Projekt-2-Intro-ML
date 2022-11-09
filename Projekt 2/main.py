@@ -208,7 +208,7 @@ print(baseerror)
 
 
 
-#%% KNN Classification, Virker
+#%% Classification (Virker)
 
 
 from matplotlib.pyplot import (figure, plot, title, xlabel, ylabel, 
@@ -217,7 +217,6 @@ from scipy.io import loadmat
 from sklearn.neighbors import KNeighborsClassifier, DistanceMetric
 from sklearn.metrics import confusion_matrix
 from numpy import cov
-import random
 from sklearn import metrics
 from sklearn.model_selection import KFold
 from scipy import stats
@@ -260,11 +259,17 @@ baseline_errors = []
 logistic_errors = []
 logistic_optLambda = []
 
+base_preds = []
+KNN_preds = []
+log_preds = []
+true_labels = []
+
 for train_ix, test_ix in cv_outer.split(X):
 	# split data
     X_train, X_test = X[train_ix, :], X[test_ix, :]
     y_train, y_test = y[train_ix], y[test_ix]
     error_rate = []
+    true_labels.append(y_test)
     
     "KNN model"
     for i in range(1,40):
@@ -273,21 +278,26 @@ for train_ix, test_ix in cv_outer.split(X):
         pred_i = knn.predict(X_test)
         error_rate.append(np.mean(pred_i != y_test))
     
-    plt.figure(figsize=(10,6))
-    plt.plot(range(1,40),error_rate,color='blue', linestyle='dashed', 
-             marker='o',markerfacecolor='red', markersize=10)
-    plt.title('Error Rate vs. K Value')
-    plt.xlabel('K')
-    plt.ylabel('Error Rate')
+    # plt.figure(figsize=(10,6))
+    # plt.plot(range(1,40),error_rate,color='blue', linestyle='dashed', 
+    #          marker='o',markerfacecolor='red', markersize=10)
+    # plt.title('Error Rate vs. K Value')
+    # plt.xlabel('K')
+    # plt.ylabel('Error Rate')
     
     KNNoptK.append(error_rate.index(min(error_rate)))
     KNN_errors.append(round(np.mean(error_rate),2))
+    
+    # Get predictions for optimal K
+    knn = KNeighborsClassifier(n_neighbors=  error_rate.index(min(error_rate)))
+    knn.fit(X_train,y_train)
+    KNN_preds +=  list(knn.predict(X_test))
     
     "Baseline model"
     baseline_pred = stats.mode(y_train)
     baseline_error = np.mean(baseline_pred != y_test)
     baseline_errors.append(round(baseline_error,2))
-    
+    base_preds += [baseline_pred[0][0]]*len(y_test)
     
     "Logistic regression model"
     # Fit regularized logistic regression model to training data to predict 
@@ -314,9 +324,16 @@ for train_ix, test_ix in cv_outer.split(X):
     opt_lambda_idx = np.argmin(test_error_rate)
     opt_lambda = lambda_interval[opt_lambda_idx]  
     
-    logistic_optLambda.append((opt_lambda))
+    logistic_optLambda.append(sig_figs(opt_lambda,2))
     logistic_errors.append(round(min_error,2))
     
+    
+    # Get predictions for optimal lambda
+    mdl = LogisticRegression(penalty='l2', C=1/opt_lambda )
+    mdl.fit(X_train, y_train)
+    y_train_est = mdl.predict(X_train).T
+    y_test_est = mdl.predict(X_test).T  
+    log_preds += list(y_test_est)
 
 print("KNN errors: ", KNN_errors)
 print("Optimal K: ", KNNoptK)
@@ -324,8 +341,16 @@ print("\nBaseline errors: ", baseline_errors)
 print("\nLogistic errors: ", logistic_errors)
 print("Logistic lambda: ", logistic_optLambda)
 
-
-  
+# KNN_preds = np.array(KNN_preds)
+true_labels = np.array(true_labels)
+base_preds = np.array(base_preds)
+print(true_labels == base_preds)
+n00 = sum((KNN_preds != true_labels) and (base_preds != true_labels))
+n01 = sum((KNN_preds != true_labels) and (base_preds == true_labels))
+n10 = sum((KNN_preds == true_labels) and (base_preds != true_labels))
+n11 = sum((KNN_preds == true_labels) and (base_preds == true_labels))
+Contingency_KNN_base = [[n00, n01], [n10, n11]]
+print(Contingency_KNN_base)
 
 
 #%%
