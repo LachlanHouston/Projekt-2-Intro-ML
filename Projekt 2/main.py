@@ -222,14 +222,21 @@ from sklearn import metrics
 from sklearn.model_selection import KFold
 from scipy import stats
 from sklearn.linear_model import LogisticRegression
+from math import floor, log10
 
+# function to round a number to specified number of significant figures 
+def sig_figs(x: float, precision: int):
+    x = float(x)
+    precision = int(precision)
 
+    return round(x, -int(floor(log10(abs(x)))) + (precision - 1))
 
 # Seperate data
 cullen = data["culmen_length_mm"]
 culdep = data["culmen_depth_mm"]
 flilen = data["flipper_length_mm"]
 bodmas = data["body_mass_g"]
+
 spec   = data["species"]
 
 # Standardize
@@ -259,6 +266,7 @@ for train_ix, test_ix in cv_outer.split(X):
     y_train, y_test = y[train_ix], y[test_ix]
     error_rate = []
     
+    "KNN model"
     for i in range(1,40):
         knn = KNeighborsClassifier(n_neighbors=i)
         knn.fit(X_train,y_train)
@@ -273,14 +281,15 @@ for train_ix, test_ix in cv_outer.split(X):
     plt.ylabel('Error Rate')
     
     KNNoptK.append(error_rate.index(min(error_rate)))
-    KNN_errors.append(np.mean(error_rate))
+    KNN_errors.append(round(np.mean(error_rate),2))
     
+    "Baseline model"
     baseline_pred = stats.mode(y_train)
     baseline_error = np.mean(baseline_pred != y_test)
-    baseline_errors.append(baseline_error)
+    baseline_errors.append(round(baseline_error,2))
     
     
-    
+    "Logistic regression model"
     # Fit regularized logistic regression model to training data to predict 
     # the type of wine
     lambda_interval = np.logspace(-8, 2, 50)
@@ -305,8 +314,8 @@ for train_ix, test_ix in cv_outer.split(X):
     opt_lambda_idx = np.argmin(test_error_rate)
     opt_lambda = lambda_interval[opt_lambda_idx]  
     
-    logistic_optLambda.append(opt_lambda)
-    logistic_errors.append(min_error)
+    logistic_optLambda.append((opt_lambda))
+    logistic_errors.append(round(min_error,2))
     
 
 print("KNN errors: ", KNN_errors)
