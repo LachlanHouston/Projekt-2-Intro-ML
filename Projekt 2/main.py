@@ -222,6 +222,8 @@ from sklearn.model_selection import KFold
 from scipy import stats
 from sklearn.linear_model import LogisticRegression
 from math import floor, log10
+from statsmodels.stats.contingency_tables import mcnemar
+
 
 # function to round a number to specified number of significant figures 
 def sig_figs(x: float, precision: int):
@@ -269,7 +271,7 @@ for train_ix, test_ix in cv_outer.split(X):
     X_train, X_test = X[train_ix, :], X[test_ix, :]
     y_train, y_test = y[train_ix], y[test_ix]
     error_rate = []
-    true_labels.append(y_test)
+    true_labels += list(y_test)
     
     "KNN model"
     for i in range(1,40):
@@ -341,18 +343,62 @@ print("\nBaseline errors: ", baseline_errors)
 print("\nLogistic errors: ", logistic_errors)
 print("Logistic lambda: ", logistic_optLambda)
 
-# KNN_preds = np.array(KNN_preds)
-true_labels = np.array(true_labels)
-base_preds = np.array(base_preds)
-print(true_labels == base_preds)
+
+### McNemars Test ###
+
+# KNN vs Baseline
+n00 = n01 = n10 = n11 = 0
+for i in range(len(true_labels)):
+    if (KNN_preds[i] != true_labels[i]) and (base_preds[i] != true_labels[i]):
+        n00 += 1
+    elif (KNN_preds[i] != true_labels[i]) and (base_preds[i] == true_labels[i]):
+        n01 += 1
+    elif (KNN_preds[i] == true_labels[i]) and (base_preds[i] != true_labels[i]):
+        n10 += 1
+    elif (KNN_preds[i] == true_labels[i]) and (base_preds[i] == true_labels[i]):
+        n11 += 1    
+
+Contingency_KNN_base = [[n00, n01], [n10, n11]]
+print(Contingency_KNN_base)
+test = mcnemar(Contingency_KNN_base, correction=True)
+print("pvalue (KNN vs Baseline)", test.pvalue)
 
 
-# n00 = sum((KNN_preds != true_labels) and (base_preds != true_labels))
-# n01 = sum((KNN_preds != true_labels) and (base_preds == true_labels))
-# n10 = sum((KNN_preds == true_labels) and (base_preds != true_labels))
-# n11 = sum((KNN_preds == true_labels) and (base_preds == true_labels))
-# Contingency_KNN_base = [[n00, n01], [n10, n11]]
-# print(Contingency_KNN_base)
+# Logistic vs Baseline
+n00 = n01 = n10 = n11 = 0
+for i in range(len(true_labels)):
+    if (log_preds[i] != true_labels[i]) and (base_preds[i] != true_labels[i]):
+        n00 += 1
+    elif (log_preds[i] != true_labels[i]) and (base_preds[i] == true_labels[i]):
+        n01 += 1
+    elif (log_preds[i] == true_labels[i]) and (base_preds[i] != true_labels[i]):
+        n10 += 1
+    elif (log_preds[i] == true_labels[i]) and (base_preds[i] == true_labels[i]):
+        n11 += 1    
+
+Contingency_log_base = [[n00, n01], [n10, n11]]
+print(Contingency_log_base)
+test = mcnemar(Contingency_log_base, correction=True)
+print("pvalue (Logistic vs Baseline)", test.pvalue)
+
+# Logistic vs KNN
+n00 = n01 = n10 = n11 = 0
+for i in range(len(true_labels)):
+    if (log_preds[i] != true_labels[i]) and (KNN_preds[i] != true_labels[i]):
+        n00 += 1
+    elif (log_preds[i] != true_labels[i]) and (KNN_preds[i] == true_labels[i]):
+        n01 += 1
+    elif (log_preds[i] == true_labels[i]) and (KNN_preds[i] != true_labels[i]):
+        n10 += 1
+    elif (log_preds[i] == true_labels[i]) and (KNN_preds[i] == true_labels[i]):
+        n11 += 1    
+
+Contingency_log_KNN = [[n00, n01], [n10, n11]]
+print(Contingency_log_KNN)
+test = mcnemar(Contingency_KNN_base, correction=True)
+print("pvalue (Logistic vs Baseline)", test.pvalue)
+
+
 
 
 #%%
