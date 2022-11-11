@@ -120,7 +120,9 @@ def train_neural_net(model, loss_fn, X, y,
     return best_net, best_final_loss, best_learning_curve
 #%%
 #Dataload
-data = pd.read_csv (r'C:/Users/Lachl/OneDrive/Documents/Intro ML/Projekt-2-Intro-ML/Projekt 2/penguins_size.csv')
+# data = pd.read_csv (r'C:/Users/Lachl/OneDrive/Documents/Intro ML/Projekt-2-Intro-ML/Projekt 2/penguins_size.csv')
+data = pd.read_csv (r'/Users/frederikravnborg/Library/CloudStorage/OneDrive-DanmarksTekniskeUniversitet/DTU-Frederik’s MacBook Pro/ML/Project 1/penguins.csv')
+
 
 labels = list(data.columns)
 X = np.array(data[['culmen_length_mm', 'culmen_depth_mm', 'flipper_length_mm']])
@@ -163,12 +165,12 @@ lambdas = np.power(10.,range(-5,9))
 
 #%%
 # ANN setup
-loss_fn = torch.nn.MSELoss() 
+loss_fn = torch.nn.MSELoss()
 
 #%%
 # Data frames for the different tests
-outer_cross_validation  = 10
-internal_cross_validation = 10
+outer_cross_validation  = 2
+internal_cross_validation = 2
 outer_Kfold = model_selection.KFold(outer_cross_validation, shuffle=True)
 inner_Kfold = model_selection.KFold(internal_cross_validation, shuffle=True)
 
@@ -188,12 +190,15 @@ ANN_outer_hiddenH = []
 
 outer_fold_counter = 0
 
+
+
+#%%
+
 # Dataframes for mcnemars test
 baseline_outer_err = []
 linreg_outer_err = []
 ANN_outer_err = []
 
-#%%
 # Primary loop
 k = 0
 for train_partition, test_partition in outer_Kfold.split(X,y):
@@ -327,14 +332,21 @@ for train_partition, test_partition in outer_Kfold.split(X,y):
     
     ANN_outer_err.extend(se)
     ANN_outer_MSE.append(mse)
+    print(len(se))
 
     # Update counter
     k += 1
 
-ANN_outer_err = pd.DataFrame(ANN_outer_err.numpy())
+
+# Convert tensor dataframe to array
+ANN_err = ANN_outer_err
+for i in range(len(ANN_err)):
+    ANN_err[i] = ANN_err[i].item()
+
+
 
 #%%
-error_All = np.array([error_test_baseline, error_test_linreg, ANN_outer_MSE]).squeeze()
+error_All = np.array([baseline_outer_err, linreg_outer_err, ANN_err]).squeeze()
 np.savetxt("errors.csv", error_All, delimiter=",")
 
 #%%

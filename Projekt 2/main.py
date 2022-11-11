@@ -296,7 +296,7 @@ for train_ix, test_ix in cv_outer.split(X):
     # Get predictions for optimal K
     knn = KNeighborsClassifier(n_neighbors=  error_rate.index(min(error_rate)))
     knn.fit(X_train,y_train)
-    KNN_preds +=  list(knn.predict(X_test))
+    KNN_preds += list(knn.predict(X_test))
     
     "Baseline model"
     baseline_pred = stats.mode(y_train)
