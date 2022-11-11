@@ -346,7 +346,7 @@ for i in range(len(ANN_err)):
 
 #%%
 error_All = np.array([baseline_outer_err, linreg_outer_err, ANN_err]).squeeze()
-np.savetxt("errors10K.csv", error_All, delimiter=",")
+np.savetxt("errors10K2.csv", error_All, delimiter=",")
 
 #%%
 plot(error_test_baseline)
