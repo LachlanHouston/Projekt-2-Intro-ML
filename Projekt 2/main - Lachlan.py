@@ -332,7 +332,6 @@ for train_partition, test_partition in outer_Kfold.split(X,y):
     
     ANN_outer_err.extend(se)
     ANN_outer_MSE.append(mse)
-    print(len(se))
 
     # Update counter
     k += 1
