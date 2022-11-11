@@ -223,6 +223,8 @@ from scipy import stats
 from sklearn.linear_model import LogisticRegression
 from math import floor, log10
 from statsmodels.stats.contingency_tables import mcnemar
+import matplotlib as plt
+from scipy.stats import beta
 
 
 # function to round a number to specified number of significant figures 
@@ -265,6 +267,7 @@ base_preds = []
 KNN_preds = []
 log_preds = []
 true_labels = []
+log_weights = []
 
 for train_ix, test_ix in cv_outer.split(X):
 	# split data
@@ -282,7 +285,7 @@ for train_ix, test_ix in cv_outer.split(X):
     
     # plt.figure(figsize=(10,6))
     # plt.plot(range(1,40),error_rate,color='blue', linestyle='dashed', 
-    #          marker='o',markerfacecolor='red', markersize=10)
+    #           marker='o',markerfacecolor='red', markersize=10)
     # plt.title('Error Rate vs. K Value')
     # plt.xlabel('K')
     # plt.ylabel('Error Rate')
@@ -336,19 +339,45 @@ for train_ix, test_ix in cv_outer.split(X):
     y_train_est = mdl.predict(X_train).T
     y_test_est = mdl.predict(X_test).T  
     log_preds += list(y_test_est)
+    w_est = mdl.coef_[0]
+    log_weights.append(w_est)
 
 print("KNN errors: ", KNN_errors)
 print("Optimal K: ", KNNoptK)
 print("\nBaseline errors: ", baseline_errors)
 print("\nLogistic errors: ", logistic_errors)
 print("Logistic lambda: ", logistic_optLambda)
+#%%
 
+w1 = np.zeros(10)
+w2 = np.zeros(10)
+w3 = np.zeros(10)
+w4 = np.zeros(10)
+for i in range(10):
+    w1[i] = log_weights[i][0]
+    w2[i] = log_weights[i][1]
+    w3[i] = log_weights[i][2]
+    w4[i] = log_weights[i][3]
 
+w1 = np.mean(w1)
+w2 = np.mean(w2)
+w3 = np.mean(w3)
+w4 = np.mean(w4)
+print("w1: ", w1, "\nw2: ", w2, "\nw3: ", w3, "\nw4: ", w4)
+#%%
 ### McNemars Test ###
 
+KNN_correct = log_correct = base_correct = 0
+
 # KNN vs Baseline
+n = 333
 n00 = n01 = n10 = n11 = 0
 for i in range(len(true_labels)):
+    if KNN_preds[i] == true_labels[i]:
+        KNN_correct += 1
+    if base_preds[i] == true_labels[i]:
+        base_correct += 1
+        
     if (KNN_preds[i] != true_labels[i]) and (base_preds[i] != true_labels[i]):
         n00 += 1
     elif (KNN_preds[i] != true_labels[i]) and (base_preds[i] == true_labels[i]):
@@ -363,10 +392,22 @@ print(Contingency_KNN_base)
 test = mcnemar(Contingency_KNN_base, correction=True)
 print("pvalue (KNN vs Baseline)", test.pvalue)
 
+alpha = 0.05
+E0 = (n10-n01)/n
+theta = E0
+Q = ( n**2*(n+1)*(E0+1)*(1-E0) ) / ( n*(n10+n01)-(n10-n01)^2 )
+f = ((E0+1)/2) * (Q-1)
+g = ((1-E0)/2) * (Q-1)
+lower = 2 * beta.ppf(alpha/2, f, g) - 1
+upper = 2 * beta.ppf(1-alpha/2, f, g) - 1
+print("CI KNN base: ", lower, upper)
 
 # Logistic vs Baseline
 n00 = n01 = n10 = n11 = 0
 for i in range(len(true_labels)):
+    if log_preds[i] == true_labels[i]:
+        log_correct += 1
+    
     if (log_preds[i] != true_labels[i]) and (base_preds[i] != true_labels[i]):
         n00 += 1
     elif (log_preds[i] != true_labels[i]) and (base_preds[i] == true_labels[i]):
@@ -380,6 +421,16 @@ Contingency_log_base = [[n00, n01], [n10, n11]]
 print(Contingency_log_base)
 test = mcnemar(Contingency_log_base, correction=True)
 print("pvalue (Logistic vs Baseline)", test.pvalue)
+
+alpha = 0.05
+E0 = (n10-n01)/n
+theta = E0
+Q = ( n**2*(n+1)*(E0+1)*(1-E0) ) / ( n*(n10+n01)-(n10-n01)^2 )
+f = ((E0+1)/2) * (Q-1)
+g = ((1-E0)/2) * (Q-1)
+lower = 2 * beta.ppf(alpha/2, f, g) - 1
+upper = 2 * beta.ppf(1-alpha/2, f, g) - 1
+print("CI log base: ", lower, upper)
 
 # Logistic vs KNN
 n00 = n01 = n10 = n11 = 0
@@ -395,10 +446,22 @@ for i in range(len(true_labels)):
 
 Contingency_log_KNN = [[n00, n01], [n10, n11]]
 print(Contingency_log_KNN)
-test = mcnemar(Contingency_KNN_base, correction=True)
-print("pvalue (Logistic vs Baseline)", test.pvalue)
+test = mcnemar(Contingency_log_KNN, correction=True)
+print("pvalue (Logistic vs KNN)", test.pvalue)
 
+alpha = 0.05
+E0 = (n10-n01)/n
+theta = E0
+Q = ( n**2*(n+1)*(E0+1)*(1-E0) ) / ( n*(n10+n01)-(n10-n01)^2 )
+f = ((E0+1)/2) * (Q-1)
+g = ((1-E0)/2) * (Q-1)
+lower = 2 * beta.ppf(alpha/2, f, g) - 1
+upper = 2 * beta.ppf(1-alpha/2, f, g) - 1
+print("CI log KNN: ", lower, upper)
 
+print("\nMean KNN acc: ", KNN_correct/n)
+print("\nMean Logistic acc: ", log_correct/n)
+print("\nMean Baseline acc: ", base_correct/n)
 
 
 #%%
