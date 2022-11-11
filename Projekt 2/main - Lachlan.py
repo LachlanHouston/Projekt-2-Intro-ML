@@ -169,8 +169,8 @@ loss_fn = torch.nn.MSELoss()
 
 #%%
 # Data frames for the different tests
-outer_cross_validation  = 2
-internal_cross_validation = 2
+outer_cross_validation  = 10
+internal_cross_validation = 10
 outer_Kfold = model_selection.KFold(outer_cross_validation, shuffle=True)
 inner_Kfold = model_selection.KFold(internal_cross_validation, shuffle=True)
 
@@ -347,7 +347,7 @@ for i in range(len(ANN_err)):
 
 #%%
 error_All = np.array([baseline_outer_err, linreg_outer_err, ANN_err]).squeeze()
-np.savetxt("errors.csv", error_All, delimiter=",")
+np.savetxt("errors10K.csv", error_All, delimiter=",")
 
 #%%
 plot(error_test_baseline)
